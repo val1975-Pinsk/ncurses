@@ -117,15 +117,17 @@ void toDo (int wi_listIndex, DISTANCE * dist, char * buff){
             mvprintw (15, 3, "DIRECT_VALUE");
             break;
         case DIST_ROUT_VALUE:
-            //mvprintw (15, 3, "DIST_ROUT_VALUE");
+            // mvprintw (15, 3, "DIST_ROUT_VALUE");
             strncpy (dist->route, buff, 3);
             // mvprintw (15, 3, "%zu", strlen(dist->route));
             break;
         case DIST_PINSK_VALUE:
-            mvprintw (15, 3, "DIST_PINSK_VALUE");
+            strncpy (dist->Pinsk, buff, 3);
+            // mvprintw (15, 3, "DIST_PINSK_VALUE");
             break;
         case DIST_CITY_2_VALUE:
-            mvprintw (15, 3, "DIST_CITY_2_VALUE");
+            strncpy (dist->DirCity, buff, 3);
+            // mvprintw (15, 3, "DIST_CITY_2_VALUE");
             break;
     }
 }// toDo
