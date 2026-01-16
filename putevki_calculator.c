@@ -87,22 +87,22 @@ void initMainWindow (windowItem * wi_list, int wi_listLen){
 void cursorGoTo (windowItem wi, int *row, int *col){
     int equal = strcmp (wi.name, "radioButton");
     if (equal == 0){
-        move (wi.row, wi.col + 1);
+        // move (wi.row, wi.col + 1);
         *row = wi.row;
-        *col = wi.col;
+        *col = wi.col + 1;
     }else{
         equal = strcmp (wi.label, "Direct");
         if (equal == 0){
-            move (wi.row, wi.col + 7);
+            // move (wi.row, wi.col + 7);
             *row = wi.row;
             *col = wi.col + 7;
         }else{
-            move (wi.row + 1, wi.col + 7);
+            // move (wi.row + 1, wi.col + 7);
             *row = wi.row + 1;
             *col = wi.col + 7;
         }
-
     }
+    move (*row, *col);
 }// cursorGoTo
 
 void toDo (int wi_listIndex, DISTANCE * dist, char * buff){
@@ -174,7 +174,7 @@ int main (){
                 wi_listIndex += 1;
                 if (wi_listIndex > 5){
                     wi_listIndex = 0;
-                    calculate ();
+                    // calculate ();
                 }
                 cursorGoTo (wi_list[wi_listIndex], &row, &col);
                 //mvprintw (15, 3, "%d", row);
