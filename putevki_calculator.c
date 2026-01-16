@@ -5,6 +5,7 @@
 #include <ncurses.h>
 #include <string.h>
 #include <stdlib.h>
+#include <math.h>
 
 #define TAB     9
 #define ENTER   10
@@ -37,6 +38,12 @@ typedef struct {
     char Pinsk[3];
     char DirCity[3];
 }DISTANCE;
+
+typedef struct {
+    char * string;
+    int strLen;
+}BUFFER;
+
 /*
  *  Функция строит интерфейс главного окна.
  * Параметры:
@@ -101,11 +108,11 @@ void cursorGoTo (windowItem wi, int *row, int *col){
             *row = wi.row + 1;
             *col = wi.col + 7;
         }
-    }
     move (*row, *col);
+    }
 }// cursorGoTo
 
-void toDo (int wi_listIndex, DISTANCE * dist, char * buff){
+void toDo (int wi_listIndex, DISTANCE * dist, BUFFER * buff){
     switch (wi_listIndex){
         case S_WINTER:
             mvprintw (15, 3, "S_WINTER");
@@ -118,28 +125,31 @@ void toDo (int wi_listIndex, DISTANCE * dist, char * buff){
             break;
         case DIST_ROUT_VALUE:
             // mvprintw (15, 3, "DIST_ROUT_VALUE");
-            strncpy (dist->route, buff, 3);
-            // mvprintw (15, 3, "%zu", strlen(dist->route));
+            strncpy (dist->route, buff->string, 3);
             break;
         case DIST_PINSK_VALUE:
-            strncpy (dist->Pinsk, buff, 3);
+            strncpy (dist->Pinsk, buff->string, 3);
             // mvprintw (15, 3, "DIST_PINSK_VALUE");
             break;
         case DIST_CITY_2_VALUE:
-            strncpy (dist->DirCity, buff, 3);
+            strncpy (dist->DirCity, buff->string, 3);
             // mvprintw (15, 3, "DIST_CITY_2_VALUE");
             break;
     }
 }// toDo
 
-void calculate (DISTANCE * dist, YUTONG * lNorma){
+void calculate (DISTANCE * dist){
+    long result = strtol (dist->route, NULL, 10);
+    mvprintw (15, 3, "%s", dist->route);
+    mvprintw (16, 3, "%ld", result);
 
 }// calculate
 
 int main (){
     int seazon = -1;
-    int charBuffCount = 0;//Количество символов, введеных с клавиатуры.
+    // int charBuffCount = 0;//Количество символов, введеных с клавиатуры.
     char * buffer = malloc (sizeof (char) * 15);//Буффер для хранения символов введеных с клавиатуры.
+
     initscr ();
     refresh ();
     /*
@@ -153,7 +163,9 @@ int main (){
     windowItem wi_distanceCity = {12, 6, "editText", "Distance around the city "};
     windowItem wi_list[] = {wi_winter, wi_summer, wi_direct, wi_rout, wi_distanceCity_Pinsk, wi_distanceCity};
 
+    BUFFER strBuffer = {buffer, 0};
     DISTANCE dist;
+    YUTONG lNorma;
     int wiListLen = sizeof (wi_list) / sizeof (wi_list[0]);
     initMainWindow (&wi_list[0], wiListLen);
 
@@ -166,15 +178,15 @@ int main (){
         inChar = getch ();
         switch (inChar){
             case ENTER:
-                toDo (wi_listIndex, &dist, buffer);
-                charBuffCount = 0;
-                mvprintw (15, 3, "%d", wi_listIndex);
+                toDo (wi_listIndex, &dist, &strBuffer);
+                // charBuffCount = 0;
+                // mvprintw (15, 3, "%d", wi_listIndex);
                 break;
             case KEY_RIGHT:
                 wi_listIndex += 1;
                 if (wi_listIndex > 5){
+                    calculate (&dist);
                     wi_listIndex = 0;
-                    // calculate ();
                 }
                 cursorGoTo (wi_list[wi_listIndex], &row, &col);
                 //mvprintw (15, 3, "%d", row);
@@ -192,21 +204,22 @@ int main (){
                 if ((inChar > 64 && inChar < 91 ) || (inChar > 96 && inChar < 123)){
                     attrset (A_REVERSE);
                     mvprintw (row, col, "%c", inChar);
-                    *(buffer + charBuffCount) = inChar;
+                    strBuffer.string[strBuffer.strLen] = inChar;
                     col ++;
-                    charBuffCount ++;
+                    strBuffer.strLen ++;
+                    // charBuffCount ++;
                     move (row, col);
                     mvprintw (15, 3, "%s", buffer);
                 }
                 /**/
-                if (inChar > 47 && inChar < 58){
-                    attrset (A_REVERSE);
-                    mvprintw (row, col, "%c", inChar);
-                    *(buffer + charBuffCount) = inChar;
-                    col ++;
-                    charBuffCount ++;
-                    move (row, col);
-                }
+                // if (inChar > 47 && inChar < 58){
+                //     attrset (A_REVERSE);
+                //     mvprintw (row, col, "%c", inChar);
+                //     *(buffer + charBuffCount) = inChar;
+                //     col ++;
+                //     charBuffCount ++;
+                //     move (row, col);
+                // }
             }
         }
 }
