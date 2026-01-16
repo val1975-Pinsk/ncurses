@@ -108,8 +108,8 @@ void cursorGoTo (windowItem wi, int *row, int *col){
             *row = wi.row + 1;
             *col = wi.col + 7;
         }
-    move (*row, *col);
     }
+    move (*row, *col);
 }// cursorGoTo
 
 void toDo (int wi_listIndex, DISTANCE * dist, BUFFER * buff){
@@ -121,7 +121,11 @@ void toDo (int wi_listIndex, DISTANCE * dist, BUFFER * buff){
             mvprintw (15, 3, "S_SUMMER");
             break;
         case DIRECT_VALUE:
-            mvprintw (15, 3, "DIRECT_VALUE");
+            mvprintw (15, 3, "%d", buff->strLen);
+            char * dirValue;
+            // strncpy (dirValue, buff->string, buff->strLen);
+            attrset (A_NORMAL);
+            // mvprintw (12, 31, "%s", dirValue);
             break;
         case DIST_ROUT_VALUE:
             // mvprintw (15, 3, "DIST_ROUT_VALUE");
@@ -185,7 +189,7 @@ int main (){
             case KEY_RIGHT:
                 wi_listIndex += 1;
                 if (wi_listIndex > 5){
-                    calculate (&dist);
+                    // calculate (&dist);
                     wi_listIndex = 0;
                 }
                 cursorGoTo (wi_list[wi_listIndex], &row, &col);
@@ -209,7 +213,7 @@ int main (){
                     strBuffer.strLen ++;
                     // charBuffCount ++;
                     move (row, col);
-                    mvprintw (15, 3, "%s", buffer);
+                    mvprintw (15, 3, "%s", strBuffer.string);
                 }
                 /**/
                 // if (inChar > 47 && inChar < 58){
