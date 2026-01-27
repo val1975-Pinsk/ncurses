@@ -131,6 +131,7 @@ int main (){
                 if (eTLIndex < 0) eTLIndex = 4;
                 editText = editTextList[eTLIndex];
                 offset = 0;
+                toDo (&editText);
                 move (editText.row, editText.col);
                 break;
             default:
