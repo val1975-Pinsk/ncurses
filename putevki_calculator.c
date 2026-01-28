@@ -12,22 +12,27 @@
 #define RIGHT   5
 #define LEFT    4
 
-// #define S_WINTER            0
-// #define S_SUMMER            1
-// #define DIRECT_VALUE        2
-// #define DIST_ROUT_VALUE     3
-// #define DIST_PINSK_VALUE    4
-// #define DIST_CITY_2_VALUE   5
-
 #define gotoStartPosition   move (5, 13);
 
 typedef struct {
     int row;
     int col;
-    int buffLength;
+    int charCount;
     char name[10];
     char buffer[15];
 }EDITTEXT;
+
+typedef struct {
+    float pinsk;
+    float route;
+    float city;
+}LINE_NORMA;
+
+typedef struct {
+    float pinsk;
+    float route;
+    float sity;
+}FUEL_CONSUMPTION;
 
 /*
  *  Функция строит интерфейс главного окна.
@@ -35,6 +40,99 @@ typedef struct {
  *      editTextList - список виджетов.
  *      listLength - количество виджетов в списке.
  */
+void initMainWindow (EDITTEXT * editTextList, int listLength);
+
+/**/
+int getClearLength (char * name);
+
+int main (){
+    int seazon = -1;
+    char inChar, clearLength, equal;
+    char * p_buffer;
+    char * emptyStr = "               ";
+    long digitFromStr;
+
+    LINE_NORMA lNorma = {33.0, 30.4, 33.6};
+    FUEL_CONSUMPTION fuelConsn = {0, 0, 0};
+    /*
+     * Здесь создаём текстовые поля и заносим в список editTextList
+     */
+    EDITTEXT direction = {5, 13, 0, "direction"};
+    EDITTEXT distRoute = {8, 13, 0, "distRoute"};
+    EDITTEXT distPinsk = {10, 13, 0, "distPinsk"};
+    EDITTEXT distCity = {12, 13, 0, "distCity"};
+    EDITTEXT editTextList[] = {direction, distRoute, distPinsk, distCity};
+    int eTLLength = sizeof (editTextList) / sizeof (editTextList[0]);
+    int eTLIndex = 0;
+    initscr ();
+    refresh ();
+    EDITTEXT editText = editTextList[eTLIndex];
+
+    initMainWindow (&editTextList[0], eTLLength);
+
+    gotoStartPosition;
+
+    while (1){
+        inChar = getch ();
+        switch (inChar){
+            case ENTER:
+                if (editText.charCount != 0){
+
+                    /*--------------------Здесь копируем в буффер--------------------------------------*/
+                    attrset (A_NORMAL);
+                    strncpy (&editTextList[eTLIndex].buffer[0], &editText.buffer[0], editText.charCount);
+                    equal = strcmp ("direction", editText.name);
+                    if (equal != 0){
+                        digitFromStr = strtol(editText.buffer, NULL, 10);
+                        // mvprintw (15, 10, "digitFromStr: %ld", digitFromStr);
+                        equal = strcmp ("distRoute", editText.name);
+                        if (equal == 0){
+                            fuelConsn.route = ((float)digitFromStr/100) * lNorma.route;
+                            mvprintw (editText.row, editText.col + 6, "%.2f", fuelConsn.route);
+                        }
+                        equal = strcmp ("distPinsk", editText.name);
+                        if (equal == 0){
+                            fuelConsn.pinsk= ((float)digitFromStr/100) * lNorma.pinsk;
+                            mvprintw (editText.row, editText.col + 6, "%.2f", fuelConsn.pinsk);
+                        }
+                    }
+                    // mvprintw (15, 10, "editText: %s", editText.buffer);
+                    // mvprintw (16, 10, "editTextList: %s", editTextList[eTLIndex].buffer);
+                    attrset (A_REVERSE);
+                    /*---------------------------------------------------------------------------------*/
+                }
+
+                eTLIndex ++;
+                if (eTLIndex > 3) eTLIndex = 0;
+                editText = editTextList[eTLIndex];
+
+                /*--------------------Здесь подтираем буффер---------------------*/
+                clearLength = getClearLength (&editText.name[0]);
+                strncpy (&editTextList[eTLIndex].buffer[0], emptyStr, clearLength);
+                strncpy (&editText.buffer[0], emptyStr, clearLength);
+                /*---------------------------------------------------------------*/
+
+                editText.charCount = 0;
+                mvprintw (editText.row, editText.col, "%s", editText.buffer);
+                move (editText.row, editText.col);
+                break;
+            default:
+                attrset (A_REVERSE);
+                if ((inChar > 64 && inChar < 91 ) || (inChar > 96 && inChar < 123)){
+                    // attrset (A_REVERSE);
+                    editText.buffer[editText.charCount] = inChar;
+                    editText.charCount ++;
+                }
+                if (inChar > 47 && inChar < 58){
+                    editText.buffer[editText.charCount] = inChar;
+                    editText.charCount ++;
+                }
+        }
+    }
+}// main
+
+
+
 void initMainWindow (EDITTEXT * editTextList, int listLength){
     char header[] = "Calculator";
     int len = strlen (header);
@@ -64,92 +162,16 @@ void initMainWindow (EDITTEXT * editTextList, int listLength){
             mvprintw ((*(editTextList + index)).row, (*(editTextList + index)).col, "     ");
         }
     }
-    attrset (A_NORMAL);
+    // attrset (A_NORMAL);
 }// initMainW
 
-void toDo (EDITTEXT * editText){
-    int equal = strcmp ("direction", editText->name);
-    char * spaceStrLong = "               ";
-    char * spaceStrShort = "     ";
-    move (editText->row, editText->col);
-    attrset (A_REVERSE);
-    if (equal == 0){
-        printw ("%s", spaceStrLong);
-        attrset (A_NORMAL);
-        mvprintw (11, 31, "%s", spaceStrLong);
-    }else{
-        printw ("%s", spaceStrShort);
-    }
-}// toDo
-
-int main (){
-    int seazon = -1;
-    /*
-     * Здесь создаём текстовые поля и заносим в список editTextList
-     */
-    EDITTEXT direction = {5, 13, 0, "direction"};
-    EDITTEXT distRoute = {8, 13, 0, "distRoute"};
-    EDITTEXT distPinsk = {10, 13, 0, "distPinsk"};
-    EDITTEXT distCity = {12, 13, 0, "distCity"};
-    EDITTEXT editTextList[] = {direction, distRoute, distPinsk, distCity};
-    int eTLLength = sizeof (editTextList) / sizeof (editTextList[0]);
-    initscr ();
-    refresh ();
-    EDITTEXT editText = editTextList[0];
-    EDITTEXT * p_editText;
-    int eTLIndex = 0;
-    char inChar;
-    int equal;
-    int offset = 0;
-    char * stroka = malloc (sizeof (char) * 15);
-    char * spaceStr = "               ";
-    initMainWindow (&editTextList[0], eTLLength);
-
-    gotoStartPosition;
-
-    keypad (stdscr, TRUE);
-    while (1){
-        inChar = getch ();
-        switch (inChar){
-            case ENTER:
-                equal = strcmp ("direction", editText.name);
-                if (equal == 0){
-                    attrset (A_NORMAL);
-                    mvprintw (11, 31, "%s", editText.buffer);
-                }
-                // break;
-            case RIGHT:
-                eTLIndex += 1;
-                if (eTLIndex > 3) eTLIndex = 0;
-                editText = editTextList[eTLIndex];
-                offset = 0;
-                toDo (&editText);
-                move (editText.row, editText.col);
-                break;
-            case LEFT:
-                eTLIndex -= 1;
-                if (eTLIndex < 0) eTLIndex = 4;
-                editText = editTextList[eTLIndex];
-                offset = 0;
-                move (editText.row, editText.col);
-                break;
-            default:
-                equal = strcmp ("direction", editText.name);
-                if (equal == 0){
-                    if ((inChar > 64 && inChar < 91 ) || (inChar > 96 && inChar < 123)){
-                        attrset (A_REVERSE);
-                        move (editText.row, editText.col + offset);
-                        waddch (stdscr, inChar);
-                        editText.buffer[offset] = inChar;
-                        offset ++;
-                        editText.buffLength = offset;
-                        // mvprintw (15, 3, "%s", editText.buffer);
-                    }
-                }else{
-                    // if (inChar > 47 && inChar < 58){
-                    //     attrset (A_REVERSE);
-                    // }
-                }
-        }
-    }
-}
+int getClearLength (char * name){
+    int equal, result;
+    // attrset (A_NORMAL);
+    // mvprintw (17, 10, "%s", name);
+    // attrset (A_REVERSE);
+    result = 5;
+    equal = strcmp ("direction", name);
+    if (equal == 0) result = 15;
+    return result;
+}// getClearLength
