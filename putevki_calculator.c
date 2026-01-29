@@ -23,16 +23,16 @@ typedef struct {
 }EDITTEXT;
 
 typedef struct {
-    float pinsk;
-    float route;
-    float city;
+    float pinsk;//    Линейная норма расхода топлива по Пинску.
+    float route;//    Линейная норма расхода топлива по трассе.
+    float city;//    Линейная норма расхода топлива по городу назначения.
 }LINE_NORMA;
 
 typedef struct {
     float pinsk;
     float route;
     float city;
-}FUEL_CONSUMPTION;
+}FUEL_CONSUMPTION;// Расход топлива.
 
 /*
  *  Функция строит интерфейс главного окна.
