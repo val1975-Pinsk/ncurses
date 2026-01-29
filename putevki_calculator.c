@@ -31,7 +31,7 @@ typedef struct {
 typedef struct {
     float pinsk;
     float route;
-    float sity;
+    float city;
 }FUEL_CONSUMPTION;
 
 /*
@@ -51,9 +51,11 @@ int main (){
     char * p_buffer;
     char * emptyStr = "               ";
     long digitFromStr;
+    float totalConsumption = 0.0;
 
     LINE_NORMA lNorma = {33.0, 30.4, 33.6};
     FUEL_CONSUMPTION fuelConsn = {0, 0, 0};
+
     /*
      * Здесь создаём текстовые поля и заносим в список editTextList
      */
@@ -81,45 +83,89 @@ int main (){
                     /*--------------------Здесь копируем в буффер--------------------------------------*/
                     attrset (A_NORMAL);
                     strncpy (&editTextList[eTLIndex].buffer[0], &editText.buffer[0], editText.charCount);
+                    /*---------------------------------------------------------------------------------*/
+
                     equal = strcmp ("direction", editText.name);
                     if (equal != 0){
+                        /*------------Здесь считаем расход топлива по трассе-----------------*/
                         digitFromStr = strtol(editText.buffer, NULL, 10);
-                        // mvprintw (15, 10, "digitFromStr: %ld", digitFromStr);
+                        // dist.route = (int)strtol(editText.buffer, NULL, 10);
                         equal = strcmp ("distRoute", editText.name);
                         if (equal == 0){
                             fuelConsn.route = ((float)digitFromStr/100) * lNorma.route;
+                            totalConsumption = fuelConsn.route;
                             mvprintw (editText.row, editText.col + 6, "%.2f", fuelConsn.route);
                         }
+                        /*-------------------------------------------------------------------*/
+
+                        /*------------Здесь считаем расход топлива по Пинску-----------------*/
                         equal = strcmp ("distPinsk", editText.name);
+                        digitFromStr = strtol(editText.buffer, NULL, 10);
                         if (equal == 0){
                             fuelConsn.pinsk= ((float)digitFromStr/100) * lNorma.pinsk;
+                            totalConsumption += fuelConsn.pinsk;
                             mvprintw (editText.row, editText.col + 6, "%.2f", fuelConsn.pinsk);
                         }
-                    }
-                    // mvprintw (15, 10, "editText: %s", editText.buffer);
-                    // mvprintw (16, 10, "editTextList: %s", editTextList[eTLIndex].buffer);
-                    attrset (A_REVERSE);
-                    /*---------------------------------------------------------------------------------*/
-                }
+                        /*-------------------------------------------------------------------*/
 
+                        /*---------Здесь считаем расход топлива по пункту назначения---------*/
+                        equal = strcmp ("distCity", editText.name);
+                        digitFromStr = strtol(editText.buffer, NULL, 10);
+                        if (equal == 0){
+                            fuelConsn.city= ((float)digitFromStr/100) * lNorma.city;
+                            totalConsumption += fuelConsn.city;
+                            mvprintw (editText.row, editText.col + 6, "%.2f", fuelConsn.city);
+                            digitFromStr = strtol(editTextList[1].buffer, NULL, 10);
+                            digitFromStr += strtol(editTextList[2].buffer, NULL, 10);
+                            digitFromStr += strtol(editTextList[3].buffer, NULL, 10);
+                            mvprintw (15, 30, "          ");
+                            mvprintw (16, 30, "          ");
+                            mvprintw (15, 30, "%ld km.", digitFromStr);
+                            mvprintw (16, 30, "%.2f l.", totalConsumption);
+                            mvprintw (18, 6, "Continue ? (y/n):");
+                            inChar = getch ();
+                            if (inChar == 'n'){
+                                printw ("\n");
+                                endwin ();
+                                return 0;
+                            }
+                        }
+                        /*-------------------------------------------------------------------*/
+
+                    }else{
+                        // attrset (A_REVERSE);
+                        mvprintw (11, 31, "%s", editText.buffer);
+                    }
+                    attrset (A_REVERSE);
+
+                }
+                /*Здесь выбираем текущий editText*/
                 eTLIndex ++;
                 if (eTLIndex > 3) eTLIndex = 0;
                 editText = editTextList[eTLIndex];
+                editText.charCount = 0;
 
-                /*--------------------Здесь подтираем буффер---------------------*/
+                /*---------------------Здесь очищаем буффер----------------------*/
                 clearLength = getClearLength (&editText.name[0]);
                 strncpy (&editTextList[eTLIndex].buffer[0], emptyStr, clearLength);
                 strncpy (&editText.buffer[0], emptyStr, clearLength);
                 /*---------------------------------------------------------------*/
-
-                editText.charCount = 0;
+                /*---------------------Здесь очищаем строки----------------------*/
                 mvprintw (editText.row, editText.col, "%s", editText.buffer);
+                attrset (A_NORMAL);
+                if (eTLIndex == 0){
+                    mvprintw (11, 31, "%s", editText.buffer);
+                }else{
+                    mvprintw (editText.row, editText.col + 6, "%s", "       ");
+                }
+                attrset (A_REVERSE);
+                /*---------------------------------------------------------------*/
+
                 move (editText.row, editText.col);
                 break;
             default:
                 attrset (A_REVERSE);
                 if ((inChar > 64 && inChar < 91 ) || (inChar > 96 && inChar < 123)){
-                    // attrset (A_REVERSE);
                     editText.buffer[editText.charCount] = inChar;
                     editText.charCount ++;
                 }
@@ -162,7 +208,10 @@ void initMainWindow (EDITTEXT * editTextList, int listLength){
             mvprintw ((*(editTextList + index)).row, (*(editTextList + index)).col, "     ");
         }
     }
-    // attrset (A_NORMAL);
+    attrset (A_NORMAL);
+    mvprintw (15, 6, "Total distance:");
+    mvprintw (16, 6, "Total fuel consumption:");
+    attrset (A_REVERSE);
 }// initMainW
 
 int getClearLength (char * name){
