@@ -11,7 +11,9 @@
 #define ENTER   10
 #define RIGHT   5
 #define LEFT    4
-
+#define UP      3
+#define DOWN    2
+#define K_DN  KEY_DOWN
 #define gotoStartPosition   move (5, 13);
 
 typedef struct {
@@ -23,16 +25,24 @@ typedef struct {
 }EDITTEXT;
 
 typedef struct {
-    float pinsk;//    Линейная норма расхода топлива по Пинску.
-    float route;//    Линейная норма расхода топлива по трассе.
-    float city;//    Линейная норма расхода топлива по городу назначения.
+    float pinsk;
+    float route;
+    float city;
 }LINE_NORMA;
 
 typedef struct {
     float pinsk;
     float route;
     float city;
-}FUEL_CONSUMPTION;// Расход топлива.
+}FUEL_CONSUMPTION;
+
+typedef struct {
+    int attr;
+    int row;
+    int col;
+    char * stroka;
+    float value;
+}MENU_ITEM;
 
 /*
  *  Функция строит интерфейс главного окна.
@@ -45,7 +55,21 @@ void initMainWindow (EDITTEXT * editTextList, int listLength);
 /**/
 int getClearLength (char * name);
 
+/**/
+float getCityLineNorma (MENU_ITEM * menuList, int listLength);
+
+/**/
+void menuOnDisplay (MENU_ITEM * menuList, int listLength);
+
+/**/
+void resetMenuItemAttr (MENU_ITEM * menuList, int listLength);
+
 int main (){
+
+    initscr ();
+    refresh ();
+    keypad (stdscr, TRUE);
+
     int seazon = -1;
     char inChar, clearLength, equal;
     char * p_buffer;
@@ -66,11 +90,15 @@ int main (){
     EDITTEXT editTextList[] = {direction, distRoute, distPinsk, distCity};
     int eTLLength = sizeof (editTextList) / sizeof (editTextList[0]);
     int eTLIndex = 0;
-    initscr ();
-    refresh ();
+
     EDITTEXT editText = editTextList[eTLIndex];
 
     initMainWindow (&editTextList[0], eTLLength);
+
+    MENU_ITEM popula_1_3 = {A_REVERSE, 12, 38, "popula 100-300  ", 1};
+    MENU_ITEM popula_3_10 = {A_NORMAL, 13, 38, "popula 300-1000 ", 2};
+    MENU_ITEM popula_10_30 = {A_NORMAL, 14, 38, "popula 1000-3000", 3};
+    MENU_ITEM itemList[] = {popula_1_3, popula_3_10, popula_10_30};
 
     gotoStartPosition;
 
@@ -112,6 +140,15 @@ int main (){
                         equal = strcmp ("distCity", editText.name);
                         digitFromStr = strtol(editText.buffer, NULL, 10);
                         if (equal == 0){
+
+                            /*------------------------- getCityLineNorma --------------------------------------------------*/
+                            lNorma.city = getCityLineNorma (&itemList[0], sizeof (itemList) / sizeof (itemList[0]));
+                            attrset (A_NORMAL);
+                            mvprintw (popula_1_3.row, popula_1_3.col, "                ");
+                            mvprintw (popula_3_10.row, popula_1_3.col, "                ");
+                            mvprintw (popula_10_30.row, popula_1_3.col, "                ");
+                            /*---------------------------------------------------------------------------------------------*/
+
                             fuelConsn.city= ((float)digitFromStr/100) * lNorma.city;
                             totalConsumption += fuelConsn.city;
                             mvprintw (editText.row, editText.col + 6, "%.2f", fuelConsn.city);
@@ -224,3 +261,43 @@ int getClearLength (char * name){
     if (equal == 0) result = 15;
     return result;
 }// getClearLength
+
+void menuOnDisplay (MENU_ITEM * menuList, int listLength){
+    for (int i = 0; i < listLength; i++){
+        attrset ((*(menuList + i)).attr);
+        mvprintw ((*(menuList + i)).row, (*(menuList + i)).col, (*(menuList + i)).stroka);
+    }
+}// menuOnDisplay
+
+void resetMenuItemAttr (MENU_ITEM * menuList, int listLength){
+    for (int i = 0; i < listLength; i++){
+        (*(menuList + i)).attr = A_NORMAL;
+        mvprintw ((*(menuList + i)).row, (*(menuList + i)).col, (*(menuList + i)).stroka);
+    }
+}// resetMenuItemAttr
+
+float getCityLineNorma (MENU_ITEM * menuList, int listLength){
+    int len, i;
+    int index = 0;
+    char inChar;
+    menuOnDisplay (menuList, listLength);
+    // resetMenuItemAttr (menuList, listLength);
+    while (1){
+        inChar = getch ();
+        resetMenuItemAttr (menuList, listLength);
+        switch (inChar){
+            case DOWN:
+                index ++;
+                if (index > 2) index = 0;
+                break;
+            case UP:
+                index --;
+                if (index < 0) index = 2;
+                break;
+            case ENTER:
+                return (*(menuList + index)).value;
+        }
+        (*(menuList + index)).attr = A_REVERSE;
+        menuOnDisplay (menuList, listLength);
+    }
+}// getCityLineNorma
