@@ -28,12 +28,14 @@ typedef struct {
     float pinsk;
     float route;
     float city;
+    float webasto;
 }LINE_NORMA;
 
 typedef struct {
     float pinsk;
     float route;
     float city;
+    float webasto;
 }FUEL_CONSUMPTION;
 
 typedef struct {
@@ -77,8 +79,8 @@ int main (){
     long digitFromStr;
     float totalConsumption = 0.0;
 
-    LINE_NORMA lNorma = {33.0, 30.4, 33.6};
-    FUEL_CONSUMPTION fuelConsn = {0, 0, 0};
+    LINE_NORMA lNorma = {33.0, 30.4, 33.6, 2};
+    FUEL_CONSUMPTION fuelConsn = {0, 0, 0, 0};
 
     /*
      * Здесь создаём текстовые поля и заносим в список editTextList
@@ -87,7 +89,8 @@ int main (){
     EDITTEXT distRoute = {8, 13, 0, "distRoute"};
     EDITTEXT distPinsk = {10, 13, 0, "distPinsk"};
     EDITTEXT distCity = {12, 13, 0, "distCity"};
-    EDITTEXT editTextList[] = {direction, distRoute, distPinsk, distCity};
+    EDITTEXT webasto = {14, 13, 0, "webasto"};
+    EDITTEXT editTextList[] = {direction, distRoute, distPinsk, distCity, webasto};
     int eTLLength = sizeof (editTextList) / sizeof (editTextList[0]);
     int eTLIndex = 0;
 
@@ -95,9 +98,9 @@ int main (){
 
     initMainWindow (&editTextList[0], eTLLength);
 
-    MENU_ITEM popula_1_3 = {A_REVERSE, 12, 38, "popula 100-300  ", 1};
-    MENU_ITEM popula_3_10 = {A_NORMAL, 13, 38, "popula 300-1000 ", 2};
-    MENU_ITEM popula_10_30 = {A_NORMAL, 14, 38, "popula 1000-3000", 3};
+    MENU_ITEM popula_1_3 = {A_REVERSE, 12, 38, "popula 100-300  ", 33.0};
+    MENU_ITEM popula_3_10 = {A_NORMAL, 13, 38, "popula 300-1000 ", 33.6};
+    MENU_ITEM popula_10_30 = {A_NORMAL, 14, 38, "popula 1000-3000", 35.2};
     MENU_ITEM itemList[] = {popula_1_3, popula_3_10, popula_10_30};
 
     gotoStartPosition;
@@ -152,13 +155,24 @@ int main (){
                             fuelConsn.city= ((float)digitFromStr/100) * lNorma.city;
                             totalConsumption += fuelConsn.city;
                             mvprintw (editText.row, editText.col + 6, "%.2f", fuelConsn.city);
+                        }
+                        /*-------------------------------------------------------------------*/
+                        /*-------------Здесь считаем расход топлива по отопителю-------------*/
+                        equal = strcmp ("webasto", editText.name);
+                        digitFromStr = strtol(editText.buffer, NULL, 10);
+                        if (equal == 0){
+                            fuelConsn.webasto = (float)digitFromStr * lNorma.webasto;
+                            totalConsumption += fuelConsn.webasto;
+                            mvprintw (editText.row, editText.col + 6, "%.2f", fuelConsn.webasto);
+                            /*------------------Здесь считаем общий километраж-------------------*/
                             digitFromStr = strtol(editTextList[1].buffer, NULL, 10);
                             digitFromStr += strtol(editTextList[2].buffer, NULL, 10);
                             digitFromStr += strtol(editTextList[3].buffer, NULL, 10);
+                            /*-------------------------------------------------------------------*/
                             mvprintw (15, 30, "          ");
                             mvprintw (16, 30, "          ");
-                            mvprintw (15, 30, "%ld km.", digitFromStr);
-                            mvprintw (16, 30, "%.2f l.", totalConsumption);
+                            mvprintw (16, 30, "%ld km.", digitFromStr);
+                            mvprintw (17, 30, "%.2f l.", totalConsumption);
                             mvprintw (18, 6, "Continue ? (y/n):");
                             inChar = getch ();
                             if (inChar == 'n'){
@@ -168,7 +182,6 @@ int main (){
                             }
                         }
                         /*-------------------------------------------------------------------*/
-
                     }else{
                         // attrset (A_REVERSE);
                         mvprintw (11, 31, "%s", editText.buffer);
@@ -178,7 +191,7 @@ int main (){
                 }
                 /*Здесь выбираем текущий editText*/
                 eTLIndex ++;
-                if (eTLIndex > 3) eTLIndex = 0;
+                if (eTLIndex > 4) eTLIndex = 0;
                 editText = editTextList[eTLIndex];
                 editText.charCount = 0;
 
@@ -236,6 +249,7 @@ void initMainWindow (EDITTEXT * editTextList, int listLength){
     mvprintw (7, 6, "Distance route");
     mvprintw (9, 6, "Distance around the city Pinsk");
     mvprintw (11, 6, "Distanse around the city");
+    mvprintw (13, 6, "Webasto");
     attrset (A_REVERSE);
     for (int index = 0; index < listLength; index ++){
         equal = strcmp ((*(editTextList + index)).name, "direction");
@@ -246,8 +260,8 @@ void initMainWindow (EDITTEXT * editTextList, int listLength){
         }
     }
     attrset (A_NORMAL);
-    mvprintw (15, 6, "Total distance:");
-    mvprintw (16, 6, "Total fuel consumption:");
+    mvprintw (16, 6, "Total distance:");
+    mvprintw (17, 6, "Total fuel consumption:");
     attrset (A_REVERSE);
 }// initMainW
 
@@ -295,6 +309,7 @@ float getCityLineNorma (MENU_ITEM * menuList, int listLength){
                 if (index < 0) index = 2;
                 break;
             case ENTER:
+                (*(menuList + index)).attr = A_REVERSE;
                 return (*(menuList + index)).value;
         }
         (*(menuList + index)).attr = A_REVERSE;
